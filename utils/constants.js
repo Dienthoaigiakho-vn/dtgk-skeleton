@@ -4,8 +4,6 @@ const PERMISSION_SCOPE = {
     READ_FILTER_OFFER: "claim_provider:read_filtered_offers",
 }
 
-const DEFAULT_PATH_PREFIX = "/v1"
-
 const DEFAULT_PATH = {
     // Credify specs
     PUSH_CLAIMS: "/push-claims",
@@ -16,6 +14,7 @@ const DEFAULT_PATH = {
     BNPL_COMPLETION_CALLBACK: "/bnpl/orders/:orderId/redirect",
     OLD_BNPL_COMPLETION_CALLBACK: "/bnpl/order/:orderId/redirect",
     GET_BNPL_DISBURSEMENT_DOCS: "/bnpl/orders/:orderId/disbursement-requirements",
+    SIMULATION: "/simulation",
 
     // Customizable
     WEBHOOK: "/webhook",
@@ -49,7 +48,6 @@ const STANDARD_SCOPES = ["phone", "email", "address", "profile"];
 
 module.exports = {
     PERMISSION_SCOPE,
-    DEFAULT_PATH_PREFIX,
     DEFAULT_PATH,
     WEBHOOK_EVENTS,
     DISBURSEMENT_DOCS,

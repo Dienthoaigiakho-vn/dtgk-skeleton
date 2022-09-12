@@ -1,12 +1,7 @@
 const { fetchUserClaimObject } = require("../dataInteraction");
 
-const pushClaims = async (req, res, { db, credify }) => {
-
-    // const validRequest = await authenticateInternalUser(db, req);
-    // if (!validRequest) {
-    //   return res.status(401).send({ message: "Unauthorized" })
-    // }
-
+const pushClaims = async (req, res, { credify }) => {
+    // authenticate user
     const organizationId = process.env.APP_ID
     if (!organizationId) {
         return res.status(400).send({ message: "Please recheck config - organization ID" })
@@ -19,7 +14,7 @@ const pushClaims = async (req, res, { db, credify }) => {
     try {
         const localId = req.body.id
         const credifyId = req.body.credify_id
-        const claims = await fetchUserClaimObject(db, localId, credifyId, [], false);
+        const claims = await fetchUserClaimObject(localId, credifyId, []);
 
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
         await delay(3000);
