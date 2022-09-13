@@ -9,7 +9,6 @@ const evaluate = require('../handlers/evaluateOffer')
 const bnplCallback = require('../handlers/bnplCallback')
 const simulation = require('../handlers/simulation')
 
-
 const formKey = require("../utils/formKey")
 const { DEFAULT_PATH } = require("../utils/constants");
 const mode = process.env.MODE || "development"
@@ -20,7 +19,7 @@ module.exports = ({ }) => {
     const api = Router()
 
     // This is necessary to start BNPL
-    api.post("/orders", async (req, res) => {
+    api.post(DEFAULT_PATH.CREATE_ORDERS, async (req, res) => {
         const credify = await Credify.create(formKey(signingKey), apiKey, { mode })
         return createOrder(req, res, { credify })
     })

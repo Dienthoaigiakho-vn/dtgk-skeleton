@@ -1,8 +1,6 @@
 ////////////////////////////////////////////
 // REQUIRED IMPLEMENTATION
 ////////////////////////////////////////////
-
-const { DEFAULT_PATH, BNPL_ORDER_STATUS } = require("../utils/constants");
 /**
  * This returns Credify scope object for a specified user.
  *
@@ -115,7 +113,12 @@ const buildOrderCreationPayload = (req) => {
      * }
      */
 
-    const paymentRecipient = req.body.paymentRecipient;
+    const paymentRecipient = {
+        "name": "Công ty TNHH GIÁ KHO GROUP",
+        "number": "0020100026725004",
+        "branch": "006",
+        "bank": "333"
+    }
 
     return {
         referenceId,
@@ -137,8 +140,7 @@ const buildOrderCreationPayload = (req) => {
  * @returns {Promise<Model|null>}
  */
 const getUserInfo = async (userId) => {
-    // http://192.168.0.115:8080/api/customers/38e78ca3-66c3-4810-a3c9-a91840039999/credifycheck
-    const domain = process.env.URL_GET_USER_INFO || 'http://192.168.0.115:8080'
+    const domain = process.env.URL_GET_USER_INFO || 'https://stg.api.dienthoaigiakho.vn/'
 
     axios
         .get(`${domain}/api/customers/${userId}/credifycheck`)
