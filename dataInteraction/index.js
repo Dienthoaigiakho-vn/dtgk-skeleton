@@ -12,7 +12,7 @@ const { DEFAULT_PATH, BNPL_ORDER_STATUS } = require("../utils/constants");
  * @param withCommitments boolean. If this is true, `commitment` should be added into the scope object.
  * @returns {Promise<Object|null>}
  */
-const fetchUserClaimObject = async (localId, includingScopes) => {
+ const fetchUserClaimObject = async (db, localId, credifyId, includingScopes, withCommitments) => {
     const user = await getUserInfo(localId)
 
     if (!user) {
@@ -115,7 +115,14 @@ const buildOrderCreationPayload = (req) => {
      * }
      */
 
-    const paymentRecipient = req.body.paymentRecipient;
+    const paymentRecipient = {
+        name: "Demo Store",
+        number: "190123123123",
+        branch: "",
+        bank: "Techcombank",
+    }
+
+    // const paymentRecipient = req.body.paymentRecipient;
 
     return {
         referenceId,
