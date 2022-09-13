@@ -19,7 +19,7 @@ const pushClaims = async (req, res, { credify }) => {
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
         await delay(3000);
 
-        const commitments = await credify.claims.push(
+        await credify.claims.push(
             organizationId,
             credifyId,
             claims
