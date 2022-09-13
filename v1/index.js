@@ -20,7 +20,7 @@ module.exports = ({ }) => {
     const api = Router()
 
     // This is necessary to start BNPL
-    api.post("/orders", async (req, res) => {
+    api.post(DEFAULT_PATH.CREATE_ORDERS, async (req, res) => {
         const credify = await Credify.create(formKey(signingKey), apiKey, { mode })
         return createOrder(req, res, { credify })
     })

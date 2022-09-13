@@ -6,6 +6,7 @@ const PERMISSION_SCOPE = {
 
 const DEFAULT_PATH = {
     // Credify specs
+    CREATE_ORDERS: "/orders",
     PUSH_CLAIMS: "/push-claims",
     OFFERS_FILTERING: "/offers-filtering",
     USER_COUNTS: "/user-counts",
