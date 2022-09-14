@@ -1,6 +1,8 @@
 ////////////////////////////////////////////
 // REQUIRED IMPLEMENTATION
 ////////////////////////////////////////////
+
+const { BNPL_ORDER_STATUS } = require("../utils/constants");
 /**
  * This returns Credify scope object for a specified user.
  *
@@ -154,9 +156,64 @@ const getUserInfo = async (userId) => {
         });
 }
 
+/**
+ * This function handles offer status update notified via webhook
+ * This function may be called several times
+ * @param payload
+ * @returns {Promise<void>}
+ */
+const handleOfferStatusUpdate = async (payload) => {
+    // Optional
+    // Not necessary for BNPL use
+}
+
+/**
+ * This function handles dispute completion notified via webhook
+ * This function may be called several times
+ * @param payload
+ * @returns {Promise<void>}
+ */
+const handleDisputeCompletion = async (payload) => {
+    // Optional
+    // Not necessary for BNPL use
+}
+
+/**
+ * This function handles order status update notified via webhook
+ * This function may be called several times
+ * @param orderId
+ * @param status
+ * @returns {Promise<void>}
+ */
+const handleOrderStatusUpdate = async (orderId, referenceId, status) => {
+    switch (status) {
+        case BNPL_ORDER_STATUS.ORDER_STATUS_CANCELED:
+            // Handle cancellation callback
+            break
+        case BNPL_ORDER_STATUS.ORDER_STATUS_APPROVED:
+            // BNPL is approved.
+            // Next step should be delivery.
+
+            break
+        case BNPL_ORDER_STATUS.ORDER_STATUS_DISBURSING:
+            // This is a confirmation from a BNPL provider to disburse loan
+            break
+        case BNPL_ORDER_STATUS.ORDER_STATUS_PAID:
+            // Disbursement is completed
+            break
+        default:
+            break
+    }
+
+    // TODO: cal api upsert transaction id, status bnpl
+}
+
 
 module.exports = {
     fetchUserClaimObject,
     getBNPLCallback,
     buildOrderCreationPayload,
+    handleOfferStatusUpdate,
+    handleDisputeCompletion,
+    handleOrderStatusUpdate,
 }

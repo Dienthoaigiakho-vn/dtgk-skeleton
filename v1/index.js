@@ -8,6 +8,7 @@ const countUsers = require('../handlers/countUsers')
 const evaluate = require('../handlers/evaluateOffer')
 const bnplCallback = require('../handlers/bnplCallback')
 const simulation = require('../handlers/simulation')
+const webhook = require('../handlers/webhook')
 
 const formKey = require("../utils/formKey")
 const { DEFAULT_PATH } = require("../utils/constants");
@@ -62,6 +63,12 @@ module.exports = ({ }) => {
     api.post(DEFAULT_PATH.SIMULATION, async (req, res) => {
         const credify = await Credify.create(formKey(signingKey), apiKey, { mode })
         return simulation(req, res, { credify })
+    })
+
+    // Called by Credify backend
+    api.post(DEFAULT_PATH.WEBHOOK, async (req, res) => {
+        const credify = await Credify.create(formKey(signingKey), apiKey, { mode })
+        return webhook(req, res, { credify })
     })
 
     return api;
