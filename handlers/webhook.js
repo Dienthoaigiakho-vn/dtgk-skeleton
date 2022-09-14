@@ -1,4 +1,4 @@
-const { apiDomain, handleOfferStatusUpdate, handleDisputeCompletion, handleOrderStatusUpdate } = require("../dataInteraction");
+const { handleOfferStatusUpdate, handleDisputeCompletion, handleOrderStatusUpdate } = require("../dataInteraction");
 const { DEFAULT_PATH_PREFIX, DEFAULT_PATH, WEBHOOK_EVENTS } = require("../utils/constants");
 
 const webhook = async (req, res, { credify }) => {
@@ -15,6 +15,7 @@ const webhook = async (req, res, { credify }) => {
         return res.status(401).send({ message: "Unauthorized" })
     }
 
+    const apiDomain = process.env.URL_BASE_API;
     const trimmedDomain = apiDomain.endsWith("/") ? apiDomain.slice(0, -1) : apiDomain;
     const webhookEndpoint = `${trimmedDomain}${DEFAULT_PATH_PREFIX}${DEFAULT_PATH.WEBHOOK}`;
     const valid = await credify.auth.verifyWebhook(signature, req.body, webhookEndpoint, eventId, timestamp);
