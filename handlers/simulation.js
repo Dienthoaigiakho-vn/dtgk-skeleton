@@ -1,6 +1,156 @@
+const DOWN_PAYMENT_FIXED_FIELD = "fixedValue";
+const DOWN_PAYMENT_TYPE = {
+    inAmount: "IN_AMOUNT",
+    overAmount: "OVER_AMOUNT",
+};
+
+const productDetail = {
+    min_loan_amount: {
+        value: "4000000.00",
+        currency: "VND"
+    },
+    max_loan_amount: {
+        value: "30000000.00",
+        currency: "VND"
+    },
+    duration: {
+        value: 10,
+        unit: "DAY"
+    },
+    min_apr_percent: 0,
+    max_apr_percent: 0,
+    down_payment: {
+        type: "IN_AMOUNT",
+        amount: {
+            type: "RATE",
+            rate: 0
+        }
+    },
+    available_terms: [
+        {
+            duration: {
+                value: 3,
+                unit: "MONTH"
+            },
+            interest: 0,
+            fee: {
+                type: "RATE",
+                rate: 0
+            }
+        },
+        {
+            duration: {
+                value: 6,
+                unit: "MONTH"
+            },
+            interest: 0.07,
+            fee: {
+                type: "RATE",
+                rate: 0
+            }
+        },
+        {
+            duration: {
+                value: 9,
+                unit: "MONTH"
+            },
+            interest: 0.08,
+            fee: {
+                type: "RATE",
+                rate: 0
+            }
+        }
+    ],
+    consumer_disbursement_requirements: [
+        "INVOICE",
+        "DELIVERY",
+        "DOWN_PAYMENT"
+    ],
+    provider_disbursement_requirements: [],
+}
+
+const getDownPaymentInAmount = (
+    downPaymentAmount,
+    orderPrice
+) => {
+    if (DOWN_PAYMENT_FIXED_FIELD in downPaymentAmount) {
+        return downPaymentAmount.fixedValue.value;
+    }
+
+    return Math.round(orderPrice * (downPaymentAmount.rate || 0));
+};
+
+const getDownPaymentOverAmount = (
+    downPayment,
+    orderAmount,
+    loanRange,
+) => {
+    const isZeroDownPaymentRate =
+        downPayment?.amount?.rate === 0 ||
+        downPayment?.amount.fixedValue?.value === 0;
+    const inLoanRange = inBetween({
+        value: orderAmount,
+        minValue: loanRange.minLoanAmountValue,
+        maxValue: loanRange.maxLoanAmountValue,
+    });
+
+    if (inLoanRange) {
+        return 0;
+    }
+
+    if (isZeroDownPaymentRate) {
+        return orderAmount - loanRange.maxLoanAmountValue;
+    }
+
+    let maxDownPayment =
+        downPayment.amount.rate || downPayment.amount.fixedValue.value;
+
+    let isNotFixedAmount = "rate" in downPayment.amount;
+    if (isNotFixedAmount) {
+        maxDownPayment = maxDownPayment * orderAmount;
+    }
+
+    let currentDownPayment = orderAmount - loanRange.maxLoanAmountValue;
+    return currentDownPayment <= maxDownPayment
+        ? currentDownPayment
+        : maxDownPayment;
+};
+
+const calculateDownPayment = (
+    downPayment,
+    orderAmount,
+    { maxLoanAmountValue, minLoanAmountValue }
+) => {
+    const isInAmountType = downPayment?.type === DOWN_PAYMENT_TYPE.inAmount;
+
+    if (isInAmountType) {
+        return getDownPaymentInAmount(downPayment.amount, orderAmount);
+    } else {
+        return getDownPaymentOverAmount(downPayment, orderAmount, { maxLoanAmountValue, minLoanAmountValue });
+    }
+}
+
+const calculateTotalAmount = (
+    orderAmountValue,
+    downPaymentAmount,
+    interest = 0
+) => {
+    const amountLeft = orderAmountValue - downPaymentAmount;
+    return Math.round(amountLeft + amountLeft * interest);
+};
+
+const createPaymentTerm = (
+    term,
+    orderAmount,
+    downPaymentAmount,
+) => {
+    return {
+        value: `${Math.ceil(calculateTotalAmount(orderAmount, downPaymentAmount, term?.interest) / (term?.duration?.value || 1))}`,
+        currency: "VND",
+    };
+};
 
 const simulation = async (req, res, { credify }) => {
-
     // try {
     //     const productType = req.body.productType
     //     const providerIds = req.body.providerIds
@@ -11,475 +161,76 @@ const simulation = async (req, res, { credify }) => {
     // } catch (error) {
     //     return res.status(500).json({ message: error.message })
     // }
-    res.status(200).json({
-        success: true, data: [
-            {
-                "schema": "schema-1",
-                "provider": {
-                    "id": "8af0e885-a06c-4508-8d17-03e4fa1ea526",
-                    "name": "Housecare",
-                    "description": "LetMeCare – LetMeCare JSC",
-                    "logo_url": "https://assets.credify.dev/images/logos/home_credit.png",
-                    "app_url": "https://www.letmecare.vn/",
-                    "categories": [],
-                    "scope_definitions": [
-                        {
-                            "id": "63a47ef0-76b1-11eb-9439-0242ac130002",
-                            "provider_id": "8af0e885-a06c-4508-8d17-03e4fa1ea526",
-                            "name": "8af0e885-a06c-4508-8d17-03e4fa1ea526:payment-amount",
-                            "display_name": "Payment amount",
-                            "description": "Payment amount",
-                            "price": {
-                                "value": "2.00",
-                                "currency": "VND"
-                            },
-                            "is_onetime_charge": false,
-                            "is_active": true,
-                            "claims": [
-                                {
-                                    "id": "63a489e0-76b1-11eb-9439-0242ac130002",
-                                    "scope_id": "63a47ef0-76b1-11eb-9439-0242ac130002",
-                                    "main_claim_id": "",
-                                    "name": "52f5969d-d51a-4616-80be-43b9f5aff548:payment-amount",
-                                    "display_name": "Payment amount",
-                                    "description": "Payment amount",
-                                    "value_type": "INTEGER",
-                                    "min_value": 0,
-                                    "max_value": 500000000,
-                                    "is_active": true,
-                                    "created_at": "2021-01-20T02:36:58.238194Z",
-                                    "updated_at": "2021-01-20T02:36:58.238194Z",
-                                    "nested": [],
-                                    "main": null,
-                                    "scope": null
-                                }
-                            ],
-                            "created_at": "2021-01-20T02:36:58.236308Z",
-                            "updated_at": "2021-01-20T02:36:58.236308Z",
-                            "provider": null
-                        },
-                        {
-                            "id": "487075aa-76af-11eb-9439-0242ac130002",
-                            "provider_id": "8af0e885-a06c-4508-8d17-03e4fa1ea526",
-                            "name": "8af0e885-a06c-4508-8d17-03e4fa1ea526:housecare-score",
-                            "display_name": "House care score",
-                            "description": "House care score",
-                            "price": {
-                                "value": "1.00",
-                                "currency": "VND"
-                            },
-                            "is_onetime_charge": false,
-                            "is_active": true,
-                            "claims": [
-                                {
-                                    "id": "63a48ac6-76b1-11eb-9439-0242ac130002",
-                                    "scope_id": "487075aa-76af-11eb-9439-0242ac130002",
-                                    "main_claim_id": "",
-                                    "name": "52f5969d-d51a-4616-80be-43b9f5aff548:housecare-score",
-                                    "display_name": "House care score",
-                                    "description": "House care score",
-                                    "value_type": "INTEGER",
-                                    "min_value": 0,
-                                    "max_value": 500,
-                                    "is_active": true,
-                                    "created_at": "2021-01-20T02:36:58.238194Z",
-                                    "updated_at": "2021-01-20T02:36:58.238194Z",
-                                    "nested": [],
-                                    "main": null,
-                                    "scope": null
-                                }
-                            ],
-                            "created_at": "2021-01-20T02:36:58.236308Z",
-                            "updated_at": "2021-01-20T02:36:58.236308Z",
-                            "provider": null
-                        }
-                    ],
-                    "placement_fee": null,
-                    "shareable_basic_profile": [
-                        "NAME",
-                        "EMAIL",
-                        "PHONE"
-                    ]
-                },
-                "product": {
-                    "code": "product-for-demo",
-                    "product_type_code": "insurance:health-insurance:for-individual",
-                    "display_name": "Bảo hiểm tai nạn",
-                    "description": "",
-                    "created_at": "2021-12-21T13:46:58.307492Z",
-                    "updated_at": "2021-12-21T13:46:58.307492Z",
-                    "detail": null,
-                    "conversion_commissions": [
-                        {
-                            "name": "hdi-tai-nan-1-agency-fee",
-                            "display_name": "Bảo hiểm tai nạn - Agency Fee",
-                            "includes_vat": false,
-                            "rate": 20,
-                            "fixed_value": null
-                        },
-                        {
-                            "name": "hdi-tai-nan-2-bonus-agency-support",
-                            "display_name": "Bảo hiểm tai nạn - Bonus Agency Support",
-                            "includes_vat": false,
-                            "rate": 20,
-                            "fixed_value": null
-                        },
-                        {
-                            "name": "hdi-tai-nan-3-service-fee",
-                            "display_name": "Bảo hiểm tai nạn - Service Fee",
-                            "includes_vat": false,
-                            "rate": 10,
-                            "fixed_value": null
-                        }
-                    ],
-                    "id": "262ef210-d2c6-4621-8393-fd55c1e24f4c",
-                    "consumer_id": "cc61532e-4668-4bee-b8c1-95fd0bec7f09",
-                    "custom_scopes": [],
-                    "consumer": null,
-                    "website_url": "",
-                    "thumbnail_url": "",
-                    "banner_url": "",
-                    "term_of_use_url": "",
-                    "required_claims": null,
-                    "custom_fields": {}
-                },
-                "tenor": {
-                    "value": 3,
-                    "unit": "MONTH"
-                },
-                "total_amount": {
-                    "value": "10000000",
-                    "currency": "VND"
-                },
-                "pay_later_amount": {
-                    "value": "9000000",
-                    "currency": "VND"
-                },
-                "period_amount": {
-                    "value": "1000000",
-                    "currency": "VND"
-                },
-                "down_payment": {
-                    "value": "1000000",
-                    "currency": "VND"
-                },
-                "fee": {
-                    "value": "500000",
-                    "currency": "VND"
+
+    try {
+        const inputs = req.body.inputs
+        const orderAmount = Number(inputs?.transaction_amount?.value || 0)
+        const downPaymentAmount = calculateDownPayment(productDetail.down_payment, orderAmount, {
+            minLoanAmountValue: Number(productDetail.min_loan_amount.value),
+            maxLoanAmountValue: Number(productDetail.max_loan_amount.value),
+        })
+        const result = productDetail.available_terms
+            .filter((term) => term.duration?.value && term.duration?.unit)
+            .map((term) => {
+                const totalAmount = calculateTotalAmount(
+                    orderAmount,
+                    downPaymentAmount,
+                    term.interest,
+                )
+                const periodAmount = createPaymentTerm(term, orderAmount, downPaymentAmount)
+                console.log(periodAmount)
+                return {
+                    schema: "schema-1",
+                    provider: {
+                        id: "09de7359-7f29-41a0-bd07-095d1ce7f85d",
+                        name: "BNPL provider",
+                        description: "BNPL provider",
+                        logo_url: "https://assets.credify.dev/images/logos/ocb.png",
+                        app_url: "https://www.ocb.com.vn/",
+                        categories: [],
+                        scope_definitions: [],
+                        placement_fee: null,
+                        shareable_basic_profile: [
+                            "PHONE"
+                        ]
+                    },
+                    product: {
+                        code: "product-for-dtgk",
+                        product_type_code: "insurance:health-insurance:for-individual",
+                        display_name: "Bảo hiểm tai nạn",
+                        description: "",
+                        created_at: "2021-12-21T13:46:58.307492Z",
+                        updated_at: "2021-12-21T13:46:58.307492Z",
+                        detail: null,
+                        conversion_commissions: [],
+                        id: "262ef210-d2c6-4621-8393-fd55c1e24f4c",
+                        consumer_id: "cc61532e-4668-4bee-b8c1-95fd0bec7f09",
+                    },
+                    tenor: term.duration,
+                    total_amount: {
+                        value: `${totalAmount}`,
+                        currency: "VND"
+                    },
+                    pay_later_amount: {
+                        value: `${totalAmount - downPaymentAmount}`,
+                        currency: "VND"
+                    },
+                    period_amount: periodAmount,
+                    down_payment: {
+                        value: `${downPaymentAmount}`,
+                        currency: "VND"
+                    },
+                    fee: {
+                        value: "0",
+                        currency: "VND"
+                    }
                 }
-            },
-            {
-                "schema": "schema-1",
-                "provider": {
-                    "id": "8af0e885-a06c-4508-8d17-03e4fa1ea526",
-                    "name": "Housecare",
-                    "description": "LetMeCare – LetMeCare JSC",
-                    "logo_url": "https://assets.credify.dev/images/logos/home_credit.png",
-                    "app_url": "https://www.letmecare.vn/",
-                    "categories": [],
-                    "scope_definitions": [
-                        {
-                            "id": "63a47ef0-76b1-11eb-9439-0242ac130002",
-                            "provider_id": "8af0e885-a06c-4508-8d17-03e4fa1ea526",
-                            "name": "8af0e885-a06c-4508-8d17-03e4fa1ea526:payment-amount",
-                            "display_name": "Payment amount",
-                            "description": "Payment amount",
-                            "price": {
-                                "value": "2.00",
-                                "currency": "VND"
-                            },
-                            "is_onetime_charge": false,
-                            "is_active": true,
-                            "claims": [
-                                {
-                                    "id": "63a489e0-76b1-11eb-9439-0242ac130002",
-                                    "scope_id": "63a47ef0-76b1-11eb-9439-0242ac130002",
-                                    "main_claim_id": "",
-                                    "name": "52f5969d-d51a-4616-80be-43b9f5aff548:payment-amount",
-                                    "display_name": "Payment amount",
-                                    "description": "Payment amount",
-                                    "value_type": "INTEGER",
-                                    "min_value": 0,
-                                    "max_value": 500000000,
-                                    "is_active": true,
-                                    "created_at": "2021-01-20T02:36:58.238194Z",
-                                    "updated_at": "2021-01-20T02:36:58.238194Z",
-                                    "nested": [],
-                                    "main": null,
-                                    "scope": null
-                                }
-                            ],
-                            "created_at": "2021-01-20T02:36:58.236308Z",
-                            "updated_at": "2021-01-20T02:36:58.236308Z",
-                            "provider": null
-                        },
-                        {
-                            "id": "487075aa-76af-11eb-9439-0242ac130002",
-                            "provider_id": "8af0e885-a06c-4508-8d17-03e4fa1ea526",
-                            "name": "8af0e885-a06c-4508-8d17-03e4fa1ea526:housecare-score",
-                            "display_name": "House care score",
-                            "description": "House care score",
-                            "price": {
-                                "value": "1.00",
-                                "currency": "VND"
-                            },
-                            "is_onetime_charge": false,
-                            "is_active": true,
-                            "claims": [
-                                {
-                                    "id": "63a48ac6-76b1-11eb-9439-0242ac130002",
-                                    "scope_id": "487075aa-76af-11eb-9439-0242ac130002",
-                                    "main_claim_id": "",
-                                    "name": "52f5969d-d51a-4616-80be-43b9f5aff548:housecare-score",
-                                    "display_name": "House care score",
-                                    "description": "House care score",
-                                    "value_type": "INTEGER",
-                                    "min_value": 0,
-                                    "max_value": 500,
-                                    "is_active": true,
-                                    "created_at": "2021-01-20T02:36:58.238194Z",
-                                    "updated_at": "2021-01-20T02:36:58.238194Z",
-                                    "nested": [],
-                                    "main": null,
-                                    "scope": null
-                                }
-                            ],
-                            "created_at": "2021-01-20T02:36:58.236308Z",
-                            "updated_at": "2021-01-20T02:36:58.236308Z",
-                            "provider": null
-                        }
-                    ],
-                    "placement_fee": null,
-                    "shareable_basic_profile": [
-                        "NAME",
-                        "EMAIL",
-                        "PHONE"
-                    ]
-                },
-                "product": {
-                    "code": "product-for-demo",
-                    "product_type_code": "insurance:health-insurance:for-individual",
-                    "display_name": "Bảo hiểm tai nạn",
-                    "description": "",
-                    "created_at": "2021-12-21T13:46:58.307492Z",
-                    "updated_at": "2021-12-21T13:46:58.307492Z",
-                    "detail": null,
-                    "conversion_commissions": [
-                        {
-                            "name": "hdi-tai-nan-1-agency-fee",
-                            "display_name": "Bảo hiểm tai nạn - Agency Fee",
-                            "includes_vat": false,
-                            "rate": 20,
-                            "fixed_value": null
-                        },
-                        {
-                            "name": "hdi-tai-nan-2-bonus-agency-support",
-                            "display_name": "Bảo hiểm tai nạn - Bonus Agency Support",
-                            "includes_vat": false,
-                            "rate": 20,
-                            "fixed_value": null
-                        },
-                        {
-                            "name": "hdi-tai-nan-3-service-fee",
-                            "display_name": "Bảo hiểm tai nạn - Service Fee",
-                            "includes_vat": false,
-                            "rate": 10,
-                            "fixed_value": null
-                        }
-                    ],
-                    "id": "262ef210-d2c6-4621-8393-fd55c1e24f4c",
-                    "consumer_id": "cc61532e-4668-4bee-b8c1-95fd0bec7f09",
-                    "custom_scopes": [],
-                    "consumer": null,
-                    "website_url": "",
-                    "thumbnail_url": "",
-                    "banner_url": "",
-                    "term_of_use_url": "",
-                    "required_claims": null,
-                    "custom_fields": {}
-                },
-                "tenor": {
-                    "value": 6,
-                    "unit": "MONTH"
-                },
-                "total_amount": {
-                    "value": "10000000",
-                    "currency": "VND"
-                },
-                "pay_later_amount": {
-                    "value": "9000000",
-                    "currency": "VND"
-                },
-                "period_amount": {
-                    "value": "1000000",
-                    "currency": "VND"
-                },
-                "down_payment": {
-                    "value": "1000000",
-                    "currency": "VND"
-                },
-                "fee": {
-                    "value": "500000",
-                    "currency": "VND"
-                }
-            },
-            {
-                "schema": "schema-1",
-                "provider": {
-                    "id": "8af0e885-a06c-4508-8d17-03e4fa1ea333",
-                    "name": "Housecare",
-                    "description": "LetMeCare – LetMeCare JSC",
-                    "logo_url": "https://assets.credify.dev/images/logos/home_credit.png",
-                    "app_url": "https://www.letmecare.vn/",
-                    "categories": [],
-                    "scope_definitions": [
-                        {
-                            "id": "63a47ef0-76b1-11eb-9439-0242ac130002",
-                            "provider_id": "8af0e885-a06c-4508-8d17-03e4fa1ea526",
-                            "name": "8af0e885-a06c-4508-8d17-03e4fa1ea526:payment-amount",
-                            "display_name": "Payment amount",
-                            "description": "Payment amount",
-                            "price": {
-                                "value": "2.00",
-                                "currency": "VND"
-                            },
-                            "is_onetime_charge": false,
-                            "is_active": true,
-                            "claims": [
-                                {
-                                    "id": "63a489e0-76b1-11eb-9439-0242ac130002",
-                                    "scope_id": "63a47ef0-76b1-11eb-9439-0242ac130002",
-                                    "main_claim_id": "",
-                                    "name": "52f5969d-d51a-4616-80be-43b9f5aff548:payment-amount",
-                                    "display_name": "Payment amount",
-                                    "description": "Payment amount",
-                                    "value_type": "INTEGER",
-                                    "min_value": 0,
-                                    "max_value": 500000000,
-                                    "is_active": true,
-                                    "created_at": "2021-01-20T02:36:58.238194Z",
-                                    "updated_at": "2021-01-20T02:36:58.238194Z",
-                                    "nested": [],
-                                    "main": null,
-                                    "scope": null
-                                }
-                            ],
-                            "created_at": "2021-01-20T02:36:58.236308Z",
-                            "updated_at": "2021-01-20T02:36:58.236308Z",
-                            "provider": null
-                        },
-                        {
-                            "id": "487075aa-76af-11eb-9439-0242ac130002",
-                            "provider_id": "8af0e885-a06c-4508-8d17-03e4fa1ea526",
-                            "name": "8af0e885-a06c-4508-8d17-03e4fa1ea526:housecare-score",
-                            "display_name": "House care score",
-                            "description": "House care score",
-                            "price": {
-                                "value": "1.00",
-                                "currency": "VND"
-                            },
-                            "is_onetime_charge": false,
-                            "is_active": true,
-                            "claims": [
-                                {
-                                    "id": "63a48ac6-76b1-11eb-9439-0242ac130002",
-                                    "scope_id": "487075aa-76af-11eb-9439-0242ac130002",
-                                    "main_claim_id": "",
-                                    "name": "52f5969d-d51a-4616-80be-43b9f5aff548:housecare-score",
-                                    "display_name": "House care score",
-                                    "description": "House care score",
-                                    "value_type": "INTEGER",
-                                    "min_value": 0,
-                                    "max_value": 500,
-                                    "is_active": true,
-                                    "created_at": "2021-01-20T02:36:58.238194Z",
-                                    "updated_at": "2021-01-20T02:36:58.238194Z",
-                                    "nested": [],
-                                    "main": null,
-                                    "scope": null
-                                }
-                            ],
-                            "created_at": "2021-01-20T02:36:58.236308Z",
-                            "updated_at": "2021-01-20T02:36:58.236308Z",
-                            "provider": null
-                        }
-                    ],
-                    "placement_fee": null,
-                    "shareable_basic_profile": [
-                        "NAME",
-                        "EMAIL",
-                        "PHONE"
-                    ]
-                },
-                "product": {
-                    "code": "product-for-demo",
-                    "product_type_code": "insurance:health-insurance:for-individual",
-                    "display_name": "Bảo hiểm tai nạn",
-                    "description": "",
-                    "created_at": "2021-12-21T13:46:58.307492Z",
-                    "updated_at": "2021-12-21T13:46:58.307492Z",
-                    "detail": null,
-                    "conversion_commissions": [
-                        {
-                            "name": "hdi-tai-nan-1-agency-fee",
-                            "display_name": "Bảo hiểm tai nạn - Agency Fee",
-                            "includes_vat": false,
-                            "rate": 20,
-                            "fixed_value": null
-                        },
-                        {
-                            "name": "hdi-tai-nan-2-bonus-agency-support",
-                            "display_name": "Bảo hiểm tai nạn - Bonus Agency Support",
-                            "includes_vat": false,
-                            "rate": 20,
-                            "fixed_value": null
-                        },
-                        {
-                            "name": "hdi-tai-nan-3-service-fee",
-                            "display_name": "Bảo hiểm tai nạn - Service Fee",
-                            "includes_vat": false,
-                            "rate": 10,
-                            "fixed_value": null
-                        }
-                    ],
-                    "id": "262ef210-d2c6-4621-8393-fd55c1e24f4c",
-                    "consumer_id": "cc61532e-4668-4bee-b8c1-95fd0bec7f09",
-                    "custom_scopes": [],
-                    "consumer": null,
-                    "website_url": "",
-                    "thumbnail_url": "",
-                    "banner_url": "",
-                    "term_of_use_url": "",
-                    "required_claims": null,
-                    "custom_fields": {}
-                },
-                "tenor": {
-                    "value": 3,
-                    "unit": "MONTH"
-                },
-                "total_amount": {
-                    "value": "10000000",
-                    "currency": "VND"
-                },
-                "pay_later_amount": {
-                    "value": "9000000",
-                    "currency": "VND"
-                },
-                "period_amount": {
-                    "value": "1000000",
-                    "currency": "VND"
-                },
-                "down_payment": {
-                    "value": "1000000",
-                    "currency": "VND"
-                },
-                "fee": {
-                    "value": "500000",
-                    "currency": "VND"
-                }
-            }
-        ]
-    })
+            });
+
+        return res.status(200).json(result)
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
 }
 
 module.exports = simulation
