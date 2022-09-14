@@ -141,11 +141,10 @@ const calculateTotalAmount = (
 
 const createPaymentTerm = (
     term,
-    orderAmount,
-    downPaymentAmount,
+    totalAmount,
 ) => {
     return {
-        value: `${Math.ceil(calculateTotalAmount(orderAmount, downPaymentAmount, term?.interest) / (term?.duration?.value || 1))}`,
+        value: `${Math.ceil(totalAmount / (term?.duration?.value || 1))}`,
         currency: "VND",
     };
 };
@@ -171,20 +170,17 @@ const simulation = async (req, res, { credify }) => {
         })
         const result = productDetail.available_terms
             .filter((term) => term.duration?.value && term.duration?.unit)
-            .map((term) => {
-                const totalAmount = calculateTotalAmount(
-                    orderAmount,
-                    downPaymentAmount,
-                    term.interest,
-                )
-                const periodAmount = createPaymentTerm(term, orderAmount, downPaymentAmount)
-                console.log(periodAmount)
+            .map((term, index) => {
+                const payLaterAmount = orderAmount - downPaymentAmount;
+                const fee = payLaterAmount * (term.interest || 0);
+                const totalAmount = payLaterAmount + fee
+                const periodAmount = createPaymentTerm(term, totalAmount)
                 return {
-                    schema: "schema-1",
+                    schema: `schema-demo-${index}`,
                     provider: {
                         id: "09de7359-7f29-41a0-bd07-095d1ce7f85d",
-                        name: "BNPL provider",
-                        description: "BNPL provider",
+                        name: "OCB",
+                        description: "OCB",
                         logo_url: "https://assets.credify.dev/images/logos/ocb.png",
                         app_url: "https://www.ocb.com.vn/",
                         categories: [],
@@ -212,7 +208,7 @@ const simulation = async (req, res, { credify }) => {
                         currency: "VND"
                     },
                     pay_later_amount: {
-                        value: `${totalAmount - downPaymentAmount}`,
+                        value: `${payLaterAmount}`,
                         currency: "VND"
                     },
                     period_amount: periodAmount,
@@ -221,13 +217,13 @@ const simulation = async (req, res, { credify }) => {
                         currency: "VND"
                     },
                     fee: {
-                        value: "0",
+                        value: `${fee}`,
                         currency: "VND"
                     }
                 }
             });
 
-        return res.status(200).json(result)
+        return res.status(200).json({ success: true, data: result })
     } catch (error) {
         return res.status(500).json({ message: error.message })
     }
