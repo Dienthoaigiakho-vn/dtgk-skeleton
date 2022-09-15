@@ -22,6 +22,8 @@ const DEFAULT_PATH = {
     PUSH_BNPL_DISBURSEMENT_CLAIMS: "/push-disbursement-claims",
 };
 
+const DEFAULT_PATH_PREFIX = "/v1"
+
 const WEBHOOK_EVENTS = {
     OFFER_TX_STATUS_UPDATED: "",
     DISPUTE_COMPLETED: "",
@@ -54,4 +56,5 @@ module.exports = {
     DISBURSEMENT_DOCS,
     BNPL_ORDER_STATUS,
     STANDARD_SCOPES,
+    DEFAULT_PATH_PREFIX,
 }

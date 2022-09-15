@@ -1,6 +1,15 @@
 ////////////////////////////////////////////
 // REQUIRED IMPLEMENTATION
 ////////////////////////////////////////////
+
+const axios = require('axios');
+
+const { BNPL_ORDER_STATUS } = require("../utils/constants");
+
+
+const domainApiMarket = process.env.URL_BASE_MARKET_API || 'https://stg.api.dienthoaigiakho.vn/'
+const domainSuccessPage = process.env.URL_SUCCESS_PAGE || 'https://dienthoaigiakho.vn'
+
 /**
  * This returns Credify scope object for a specified user.
  *
@@ -48,9 +57,8 @@ const fetchUserClaimObject = async (localId, includingScopes) => {
  * @param orderId
  * @return {Promise<string>}
  */
-const getBNPLCallback = async (db, orderId) => {
-    const domain = process.env.URL_SUCCESS_PAGE || 'https://dienthoaigiakho.vn'
-    return `${domain}/mua-tra-gop/success`
+const getBNPLCallback = async (orderId, isError) => {
+    return isError ? `${domainSuccessPage}/mua-tra-gop` : `${domainSuccessPage}/mua-tra-gop/success`
 }
 
 /**
@@ -131,6 +139,9 @@ const buildOrderCreationPayload = (req) => {
 // Private methods (please modify the following as you like.)
 /////////////////////////////////////////////////////////////
 
+
+
+
 /**
  * This retrieves user model from market by http request
  * The key will be either local (internal) ID
@@ -140,10 +151,8 @@ const buildOrderCreationPayload = (req) => {
  * @returns {Promise<Model|null>}
  */
 const getUserInfo = async (userId) => {
-    const domain = process.env.URL_GET_USER_INFO || 'https://stg.api.dienthoaigiakho.vn/'
-
     axios
-        .get(`${domain}/api/customers/${userId}/credifycheck`)
+        .get(`${domainApiMarket}/api/customers/${userId}/credifycheck`)
         .then(res => {
             console.log(`statusCode: ${res.status}`);
             console.log(res);
@@ -154,9 +163,96 @@ const getUserInfo = async (userId) => {
         });
 }
 
+/**
+ * This function handles offer status update notified via webhook
+ * This function may be called several times
+ * @param payload
+ * @returns {Promise<void>}
+ */
+const handleOfferStatusUpdate = async (payload) => {
+    // Optional
+    // Not necessary for BNPL use
+}
+
+/**
+ * This function handles dispute completion notified via webhook
+ * This function may be called several times
+ * @param payload
+ * @returns {Promise<void>}
+ */
+const handleDisputeCompletion = async (payload) => {
+    // Optional
+    // Not necessary for BNPL use
+}
+
+/**
+ * This function handles order status update notified via webhook
+ * This function may be called several times
+ * @param orderId
+ * @param status
+ * @returns {Promise<void>}
+ */
+const handleOrderStatusUpdate = async (orderId, referenceId, status) => {
+    if (!referenceId) {
+        console.log('referenceId invalid', referenceId)
+        return
+    }
+
+    const orderInfo = await getOrderInfo(referenceId)
+    // TODO: cal api upsert transaction id, status bnpl
+    await updateExtraOrder(referenceId, orderInfo, orderId, status)
+}
+
+
+/**
+ * This retrieves sale order model from market by http request
+ * The key will be either local (internal) ID
+ *
+ * @param referenceId   : orderId of DTGK
+ * @param orderId       : orderId of Credify
+ * @param order         : order object of DTGK
+ * @param status        : status want to update to market
+ * @returns {Promise<Model|null>}
+ */
+const updateExtraOrder = async (referenceId, order, orderId, status) => {
+    console.log('extra data order before update', JSON.stringify(order.extra_data))
+    try {
+        const { data } = await axios.patch(`${domainApiMarket}/api/v2/sale-orders/${referenceId}`, {
+            extra_data: {
+                ...order.extra_data,
+                bnplTrx: {
+                    orderId,
+                    status
+                }
+            }
+        })
+
+        console.log('extra data order after update', JSON.stringify(data.extra_data))
+
+        return data
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+const getOrderInfo = async (orderId) => {
+    try {
+        const { data } = await axios.get(`${domainApiMarket}/api/v2/sale-orders/${orderId}`)
+        return {
+            id: data.id,
+            extra_data: data.extra_data,
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 
 module.exports = {
     fetchUserClaimObject,
     getBNPLCallback,
     buildOrderCreationPayload,
+    handleOfferStatusUpdate,
+    handleDisputeCompletion,
+    handleOrderStatusUpdate,
 }
