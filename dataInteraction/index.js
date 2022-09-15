@@ -220,7 +220,7 @@ const updateExtraOrder = async (referenceId, order, orderId, status) => {
         const { data } = await axios.patch(`${domainApiMarket}/api/v2/sale-orders/${referenceId}`, {
             extra_data: {
                 ...order.extra_data,
-                bnplTrx: {
+                bnplTx: {
                     orderId,
                     status
                 }
