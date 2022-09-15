@@ -1,5 +1,5 @@
 const formKey = (data) => {
-    return `-----BEGIN PRIVATE KEY-----
+  return `-----BEGIN PRIVATE KEY-----
   ${data}
   -----END PRIVATE KEY-----`;
 };
