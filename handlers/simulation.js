@@ -139,6 +139,7 @@ const createPaymentTerm = (term, totalAmount) => {
 };
 
 const simulation = async (req, res, { credify }) => {
+  // TODO: call credify core to get simulation configuration
   // try {
   //     const productType = req.body.productType
   //     const providerIds = req.body.providerIds
