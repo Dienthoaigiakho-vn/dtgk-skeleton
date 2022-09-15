@@ -193,23 +193,9 @@ const handleDisputeCompletion = async (payload) => {
  * @returns {Promise<void>}
  */
 const handleOrderStatusUpdate = async (orderId, referenceId, status) => {
-    switch (status) {
-        case BNPL_ORDER_STATUS.ORDER_STATUS_CANCELED:
-            // Handle cancellation callback
-            break
-        case BNPL_ORDER_STATUS.ORDER_STATUS_APPROVED:
-            // BNPL is approved.
-            // Next step should be delivery.
-
-            break
-        case BNPL_ORDER_STATUS.ORDER_STATUS_DISBURSING:
-            // This is a confirmation from a BNPL provider to disburse loan
-            break
-        case BNPL_ORDER_STATUS.ORDER_STATUS_PAID:
-            // Disbursement is completed
-            break
-        default:
-            break
+    if (!referenceId) {
+        console.log('referenceId invalid', referenceId)
+        return
     }
 
     const orderInfo = await getOrderInfo(referenceId)
