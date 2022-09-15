@@ -222,7 +222,7 @@ const handleOrderStatusUpdate = async (orderId, referenceId, newStatus) => {
  * @returns {true/false}
  */
 const acceptStatus = (extraData, newStatus) => {
-  if (!Object.keys(extraData.bnplTx).length) {
+  if (!extraData.bnplTx || !Object.keys(extraData.bnplTx).length) {
     // We should be save data here
     return true;
   }
