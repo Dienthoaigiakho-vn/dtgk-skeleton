@@ -1,13 +1,13 @@
 const extractToken = require("../utils/extractToken");
 const { PERMISSION_SCOPE } = require("../utils/constants");
 
-const countUsers = async (req, res, { credify }) => {
+const evaluate = async (req, res, { credify }) => {
   if (process.env.CONTEXT_ENV !== "Jest") {
     const token = extractToken(req);
     try {
       const validToken = await credify.auth.introspectToken(
         token,
-        PERMISSION_SCOPE.COUNT_USER
+        PERMISSION_SCOPE.READ_EVALUATED_OFFER
       );
       if (!validToken) {
         return res.status(401).send({ message: "Unauthorized" });
@@ -17,26 +17,23 @@ const countUsers = async (req, res, { credify }) => {
     }
   }
 
-  const ids = req.body.ids || [];
+  if (!req.body.credify_id || !req.body.scopes) {
+    return res.status(400).send({ message: "Invalid body" });
+  }
   let conditions = req.body.conditions || [{}];
   conditions = conditions.map((c) => {
-    if (c === null) return {};
-    else return c;
+    return c === null ? {} : c;
   });
-  const requiredCustomScopes = req.body.required_custom_scopes || [];
-
-  // This is a future usage. Not necessary at the moment
 
   try {
-    const response = {
-      data: {
-        counts: [0],
-      },
-    };
-    res.json(response);
+    res.json(
+      (response = {
+        data: {},
+      })
+    );
   } catch (e) {
     res.status(500).send({ message: e.message });
   }
 };
 
-module.exports = countUsers;
+module.exports = evaluate;
