@@ -12,11 +12,10 @@ const {
 } = require("./dataInteraction");
 
 
-const signingKey = ""
-const apiKey = ""
-const mode = "sandbox" // "sandbox" or "production"
+const signingKey = process.env.APP_SIGNING_KEY
+const apiKey = process.env.APP_API_KEY
+const mode = "sit" // "sandbox" or "production"
 const apiDomain = process.env.URL_BASE_API;
-const bnplCallbackUrl = "https://example.com"
 
 module.exports = () => {
   const api = Router()
@@ -131,10 +130,11 @@ module.exports = () => {
      * }
      */
     const inputs = req.body.inputs
-
+    
     try {
       const credify = await Credify.create(formKey(signingKey), apiKey, { mode })
       // const response = await credify.offer.simulate(productType, providerIds, inputs)
+      console.log("HERE!!!")
       return simulation(req, res, { credify });
       // res.json(response)
     } catch (e) {
