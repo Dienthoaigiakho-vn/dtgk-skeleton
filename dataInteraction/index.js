@@ -4,7 +4,7 @@
 
 const axios = require("axios");
 
-const { BNPL_ORDER_STATUS } = require("../utils/constants");
+const { BNPL_ORDER_STATUS } = require("../constants");
 
 const domainApiMarket =
   process.env.URL_BASE_MARKET_API || "https://stg.api.dienthoaigiakho.vn/";

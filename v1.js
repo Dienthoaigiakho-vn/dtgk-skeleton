@@ -2,7 +2,7 @@ const { Router } = require("express")
 const { Credify } = require("@credify/nodejs")
 const { formKey } = require("./utils")
 const {WEBHOOK_EVENTS} = require("./constants");
-const bnplCallback = require("../handlers/bnplCallback");
+const bnplCallback = require("./handlers/bnplCallback");
 const createOrder = require("./handlers/createOrder");
 const simulation = require("./handlers/simulation");
 const {
