@@ -1,46 +1,30 @@
-Credify market for DTGK
-==================================
+# BNPL Skeleton Nodejs
 
-Getting Started
----------------
+This project demonstrates how to integrate serviceX BNPL with the simplest approach.
 
-```sh
-# clone it
-git clone git@github.com/Dienthoaigiakho-vn/dtgk-skeleton.git
-cd dtgk-skeleton
+[Here is the documentation](https://developers.credify.one/guide/integration-guide-no-data.html).
 
-# Make it your own
-rm -rf .git && git init && npm init
+## How to use
 
-# Install dependencies
-npm install
-
-# Start development live-reload server
-PORT=8000 npm run dev
-
-# Start production server:
-PORT=8000 npm start
-```
-Docker Support
-------
-```sh
-cd 
-
-# Build your docker
-docker build -t dtgk-skeleton .
-#            ^      ^           ^
-#          tag  tag name      Dockerfile location
-
-# run your docker
-docker run -p 8000:8000 dtgk-skeleton
-#                 ^            ^
-#          bind the port    container tag
-#          to your host
-#          machine port   
-
+```shell
+$ git clone https://github.com/credify-pte-ltd/bnpl-skeleton-nodejs.git
+$ cd bnpl-skeleton-nodejs
+$ yarn
+$ yarn start
 ```
 
-License
--------
+This exposes 3 endpoints
 
-MIT
+- `[POST] /v1/orders`
+  - This creates Order ID with Credify SDK and returns the Order data. You are supposed to keep this Order ID in your system for the later use.
+- `[POST] /v1/simulate`
+  - This simulates loan use. This is not mandatory to use. If you want to render loan summary provided through serviceX inside your platform, you can use this function. 
+- `[POST] /v1/webhook`
+  - This handles webhook requests from Credify. You are supposed to register this endpoint on serviceX Dashboard.
+- `[GET] /v1/bnpl/orders/:orderId/redirect`
+  - This returns BNPL completion page. Service Providers redirect users to this URL when BNPL authorization is done.
+
+
+## How to customize
+
+When you integrate BNPL, please update `v1.js` to add your own logic.
