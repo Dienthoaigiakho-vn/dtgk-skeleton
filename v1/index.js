@@ -16,6 +16,10 @@ const mode = process.env.MODE || "development";
 const signingKey = process.env.APP_SIGNING_KEY;
 const apiKey = process.env.APP_API_KEY;
 
+console.log('signingKey', signingKey)
+console.log('apiKey', apiKey)
+console.log('mode', mode)
+
 module.exports = ({}) => {
   const api = Router();
 
