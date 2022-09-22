@@ -7,7 +7,7 @@ const axios = require("axios");
 const { BNPL_ORDER_STATUS } = require("../utils/constants");
 
 const domainApiMarket =
-  process.env.URL_BASE_MARKET_API || "https://stg.api.dienthoaigiakho.vn/";
+  process.env.URL_BASE_MARKET_API || "https://stg.api.dienthoaigiakho.vn";
 const domainSuccessPage =
   process.env.URL_SUCCESS_PAGE || "https://dienthoaigiakho.vn";
 
