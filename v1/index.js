@@ -16,6 +16,10 @@ const mode = process.env.MODE || "development";
 const signingKey = process.env.APP_SIGNING_KEY;
 const apiKey = process.env.APP_API_KEY;
 
+console.log('signingKey', signingKey)
+console.log('apiKey', apiKey)
+console.log('mode', mode)
+
 module.exports = ({}) => {
   const api = Router();
 
@@ -61,7 +65,9 @@ module.exports = ({}) => {
   });
 
   api.post(DEFAULT_PATH.SIMULATION, async (req, res) => {
+    console.log("inside path ", DEFAULT_PATH.SIMULATION)
     const credify = await Credify.create(formKey(signingKey), apiKey, { mode });
+    console.log("after create credify instance ", DEFAULT_PATH.SIMULATION)
     return simulation(req, res, { credify });
   });
 
