@@ -4,11 +4,11 @@ COPY . /demo
 
 WORKDIR /demo
 
-RUN yarn install
+RUN yarn install && apk --update --no-cache add busybox-extras
 
 USER node
 
 # expose the port to outside world
-EXPOSE  8000
+EXPOSE 8000
 
 ENTRYPOINT ["/bin/sh", "-c", "yarn start" ]
