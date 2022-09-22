@@ -19,6 +19,9 @@ cp .env.example .env
 
 ```
 
+Here are all the variables used in the source code environment.
+If you have any questions, please ping @jeremie_belpois or @quytoanvu on Telegram.
+
 How to start app with yarn
 
 ```sh

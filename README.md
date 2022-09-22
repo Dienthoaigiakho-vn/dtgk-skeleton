@@ -1,8 +1,6 @@
-Credify market for DTGK
-==================================
+# Credify market for DTGK
 
-Getting Started
----------------
+## Getting Started
 
 ```sh
 # clone it
@@ -21,10 +19,11 @@ PORT=8000 npm run dev
 # Start production server:
 PORT=8000 npm start
 ```
-Docker Support
-------
+
+## Docker Support
+
 ```sh
-cd 
+cd
 
 # Build your docker
 docker build -t dtgk-skeleton .
@@ -36,11 +35,12 @@ docker run -p 8000:8000 dtgk-skeleton
 #                 ^            ^
 #          bind the port    container tag
 #          to your host
-#          machine port   
+#          machine port
 
 ```
 
-License
--------
+[How to run code](./GUIDELINE.md)
+
+## License
 
 MIT
