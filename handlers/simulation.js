@@ -183,7 +183,7 @@ const simulation = async (req, res, { credify }) => {
             shareable_basic_profile: ["PHONE"],
           },
           product: {
-            code: "product-for-dtgk",
+            code: "bnpl-dtgk-test-01-1663927998",
             product_type_code: "insurance:health-insurance:for-individual",
             display_name: "Bảo hiểm tai nạn",
             description: "",
