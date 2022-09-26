@@ -65,9 +65,7 @@ module.exports = ({}) => {
   });
 
   api.post(DEFAULT_PATH.SIMULATION, async (req, res) => {
-    console.log("inside path ", DEFAULT_PATH.SIMULATION)
     const credify = await Credify.create(formKey(signingKey), apiKey, { mode });
-    console.log("after create credify instance ", DEFAULT_PATH.SIMULATION)
     return simulation(req, res, { credify });
   });
 
