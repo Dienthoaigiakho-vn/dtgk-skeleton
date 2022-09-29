@@ -22,7 +22,7 @@ const simulation = async (req, res, { credify }) => {
 
     return res.status(200).json({ success: true, data: response.list });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message })
   }
 };
 
